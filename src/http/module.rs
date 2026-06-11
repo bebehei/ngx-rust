@@ -115,7 +115,7 @@ pub trait HttpModule {
     /// Callers should provide valid non-null `ngx_conf_t` arguments. Implementers must
     /// guard against null inputs or risk runtime errors.
     unsafe extern "C" fn merge_srv_conf(
-        _cf: *mut ngx_conf_t,
+        cf: *mut ngx_conf_t,
         prev: *mut c_void,
         conf: *mut c_void,
     ) -> *mut c_char
@@ -128,7 +128,10 @@ pub trait HttpModule {
             let conf = &mut *(conf as *mut Self::ServerConf);
             match conf.merge(prev) {
                 Ok(_) => ptr::null_mut(),
-                Err(_) => NGX_CONF_ERROR as _,
+                Err(e) => {
+                    ngx_conf_log_error!(NGX_LOG_EMERG, cf, "failed to merge server configuration: {}", e);
+                    NGX_CONF_ERROR as _
+                }
             }
         }
     }
@@ -153,7 +156,7 @@ pub trait HttpModule {
     /// Callers should provide valid non-null `ngx_conf_t` arguments. Implementers must
     /// guard against null inputs or risk runtime errors.
     unsafe extern "C" fn merge_loc_conf(
-        _cf: *mut ngx_conf_t,
+        cf: *mut ngx_conf_t,
         prev: *mut c_void,
         conf: *mut c_void,
     ) -> *mut c_char
@@ -166,7 +169,10 @@ pub trait HttpModule {
             let conf = &mut *(conf as *mut Self::LocationConf);
             match conf.merge(prev) {
                 Ok(_) => ptr::null_mut(),
-                Err(_) => NGX_CONF_ERROR as _,
+                Err(e) => {
+                    ngx_conf_log_error!(NGX_LOG_EMERG, cf, "failed to merge location configuration: {}", e);
+                    NGX_CONF_ERROR as _
+                }
             }
         }
     }
