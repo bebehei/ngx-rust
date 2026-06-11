@@ -6,6 +6,7 @@ use core::ptr;
 use crate::core::NGX_CONF_ERROR;
 use crate::core::*;
 use crate::ffi::*;
+use crate::ngx_conf_log_error;
 
 /// MergeConfigError - configuration cannot be merged with levels above.
 #[derive(Debug)]
@@ -123,15 +124,13 @@ pub trait HttpModule {
         Self: super::HttpModuleServerConf,
         Self::ServerConf: Merge,
     {
-        unsafe {
-            let prev = &mut *(prev as *mut Self::ServerConf);
-            let conf = &mut *(conf as *mut Self::ServerConf);
-            match conf.merge(prev) {
-                Ok(_) => ptr::null_mut(),
-                Err(e) => {
-                    ngx_conf_log_error!(NGX_LOG_EMERG, cf, "failed to merge server configuration: {}", e);
-                    NGX_CONF_ERROR as _
-                }
+        let prev = unsafe { &mut *(prev as *mut Self::ServerConf) };
+        let conf = unsafe { &mut *(conf as *mut Self::ServerConf) };
+        match conf.merge(prev) {
+            Ok(_) => ptr::null_mut(),
+            Err(e) => {
+                ngx_conf_log_error!(NGX_LOG_EMERG, cf, "failed to merge server configuration: {}", e);
+                NGX_CONF_ERROR as _
             }
         }
     }
@@ -164,15 +163,13 @@ pub trait HttpModule {
         Self: super::HttpModuleLocationConf,
         Self::LocationConf: Merge,
     {
-        unsafe {
-            let prev = &mut *(prev as *mut Self::LocationConf);
-            let conf = &mut *(conf as *mut Self::LocationConf);
-            match conf.merge(prev) {
-                Ok(_) => ptr::null_mut(),
-                Err(e) => {
-                    ngx_conf_log_error!(NGX_LOG_EMERG, cf, "failed to merge location configuration: {}", e);
-                    NGX_CONF_ERROR as _
-                }
+        let prev = unsafe { &mut *(prev as *mut Self::LocationConf) };
+        let conf = unsafe { &mut *(conf as *mut Self::LocationConf) };
+        match conf.merge(prev) {
+            Ok(_) => ptr::null_mut(),
+            Err(e) => {
+                ngx_conf_log_error!(NGX_LOG_EMERG, cf, "failed to merge location configuration: {}", e);
+                NGX_CONF_ERROR as _
             }
         }
     }
